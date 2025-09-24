@@ -2,8 +2,10 @@ package app.banksystem.controller;
 
 import app.banksystem.model.Account;
 
+import app.banksystem.model.Transaction;
 import app.banksystem.repository.AccountRepository;
 import app.banksystem.repository.CustomerRepository;
+import app.banksystem.repository.TransactionRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,4 +73,27 @@ public class AccountController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    //transfer
+    @PostMapping("/transfer")
+    public ResponseEntity<Account> transfer(@RequestParam Long fromAccountId, @RequestParam Long toAccountId, @RequestParam double amount) {
+        Account from = accountRepository.findById(fromAccountId).orElse(null);
+        Account to = accountRepository.findById(toAccountId).orElse(null);
+        if (from == null || to == null) return ResponseEntity.badRequest().body("Invalid account ID(s)");
+        if (from.getBalance() < amount) return ResponseEntity.badRequest().body("Insufficient funds");
+
+        // perform transfer
+        from.setBalance(from.getBalance() - amount);
+        to.setBalance(to.getBalance() + amount);
+
+        accountRepository.save(from);
+        accountRepository.save(to);
+
+        // record transactions
+        transactionRepository.save(new Transaction(from, "TRANSFER_OUT", amount));
+        transactionRepository.save(new Transaction(to, "TRANSFER_IN", amount));
+
+        return ResponseEntity.ok("Transfer successful");
+    }
+
 }

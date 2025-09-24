@@ -1,5 +1,6 @@
 package app.banksystem.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -16,7 +17,8 @@ public class Account {
 
     // Many accounts can belong to one customer
     @ManyToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "customer_id", nullable = false)
+    @JsonBackReference
     private Customer customer;
 
 

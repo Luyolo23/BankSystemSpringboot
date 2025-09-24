@@ -2,6 +2,7 @@ package app.banksystem.model;
 
 import jakarta.persistence.*;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "customers")
@@ -19,7 +20,8 @@ public class Customer {
     private String phone;
 
     // One customer can have many accounts
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Account> accounts;
 
 
