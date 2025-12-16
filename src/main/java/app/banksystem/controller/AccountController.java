@@ -23,7 +23,7 @@ public class AccountController {
         this.customerRepository = customerRepository;
     }
 
-    // Create account for a customer
+    // Creates an account for a customer
     @PostMapping("/create/{customerId}")
     public ResponseEntity<Account> createAccount(@PathVariable Long customerId, @RequestBody Account account) {
         return customerRepository.findById(customerId)
