@@ -2,6 +2,7 @@ package app.banksystem.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "accounts")
@@ -13,7 +14,7 @@ public class Account {
 
     private String accountNumber;
     private String type;
-    private Double balance;
+    private BigDecimal balance;
 
     // Many accounts can belong to one customer
     @ManyToOne
@@ -24,7 +25,7 @@ public class Account {
 
     public Account() {}
 
-    public Account(String accountNumber, String type, Double balance, Customer customer) {
+    public Account(String accountNumber, String type, BigDecimal balance, Customer customer) {
         this.accountNumber = accountNumber;
         this.type = type;
         this.balance = balance;
@@ -41,8 +42,8 @@ public class Account {
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 
-    public Double getBalance() { return balance; }
-    public void setBalance(Double balance) { this.balance = balance; }
+    public BigDecimal getBalance() { return balance; }
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
 
     public Customer getCustomer() { return customer; }
     public void setCustomer(Customer customer) { this.customer = customer; }

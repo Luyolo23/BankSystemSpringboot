@@ -1,9 +1,9 @@
 package app.banksystem.dto;
 
-import app.banksystem.entity.Account;
+import app.banksystem.model.Account;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+
 
 /**
  * DTO for account information responses
@@ -14,17 +14,14 @@ public class AccountResponse {
     private String accountNumber;
     private String accountType;
     private BigDecimal balance;
-    private LocalDateTime createdAt;
 
-    // Constructors
     public AccountResponse() {}
 
     public AccountResponse(Account account) {
         this.id = account.getId();
         this.accountNumber = account.getAccountNumber();
-        this.accountType = account.getAccountType().name();
+        this.accountType = account.getType();
         this.balance = account.getBalance();
-        this.createdAt = account.getCreatedAt();
     }
 
     // Getters and Setters
@@ -40,6 +37,4 @@ public class AccountResponse {
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

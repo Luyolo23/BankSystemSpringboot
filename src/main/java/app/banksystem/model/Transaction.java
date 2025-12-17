@@ -2,6 +2,7 @@ package app.banksystem.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 public class Transaction {
@@ -14,12 +15,12 @@ public class Transaction {
     private Account account;
 
     private String type; // "DEPOSIT", "WITHDRAW", "TRANSFER"
-    private double amount;
+    private BigDecimal amount;
     private LocalDateTime timestamp;
 
     public Transaction() {}
 
-    public Transaction(Account account, String type, double amount) {
+    public Transaction(Account account, String type, BigDecimal amount) {
         this.account = account;
         this.type = type;
         this.amount = amount;
@@ -33,8 +34,8 @@ public class Transaction {
     public void setAccount(Account account) { this.account = account; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
-    public double getAmount() { return amount; }
-    public void setAmount(double amount) { this.amount = amount; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 
