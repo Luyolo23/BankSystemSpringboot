@@ -1,6 +1,7 @@
 package app.banksystem.service;
 
 import app.banksystem.model.Account;
+import app.banksystem.model.Customer;
 import app.banksystem.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,5 +37,17 @@ public class AccountService {
     public void updateBalance(Account account, BigDecimal newBalance) {
         account.setBalance(newBalance);
         accountRepository.save(account);
+    }
+
+    public Account save(Account account) {
+        return accountRepository.save(account);
+    }
+
+    public List<Account> findAll() {
+        return accountRepository.findAll();
+    }
+
+    public List<Account> findByCustomer(Customer customer) {
+        return accountRepository.findByCustomer(customer);
     }
 }

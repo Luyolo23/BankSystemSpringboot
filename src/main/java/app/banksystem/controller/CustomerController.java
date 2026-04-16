@@ -1,7 +1,8 @@
 package app.banksystem.controller;
 
 import app.banksystem.model.Customer;
-import app.banksystem.repository.CustomerRepository;
+import app.banksystem.service.AuthService;
+import app.banksystem.service.CustomerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,23 +12,25 @@ import java.util.List;
 @RequestMapping("/customers")
 public class CustomerController {
 
-    private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
+    private final AuthService authService;
 
-    public CustomerController(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+    public CustomerController(CustomerService customerService, AuthService authService) {
+        this.customerService = customerService;
+        this.authService = authService;
     }
 
-    // Create a new customer
+    // Create a new customer (Registers with password hashing)
     @PostMapping
     public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
-        Customer savedCustomer = customerRepository.save(customer);
+        Customer savedCustomer = authService.register(customer);
         return ResponseEntity.ok(savedCustomer);
     }
 
     // Get customer by ID
     @GetMapping("/{id}")
     public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
-        return customerRepository.findById(id)
+        return customerService.getCustomerById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -35,6 +38,6 @@ public class CustomerController {
     // Get all customers
     @GetMapping
     public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
+        return customerService.getAllCustomers();
     }
 }

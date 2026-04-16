@@ -19,6 +19,12 @@ public class Customer {
 
     private String phone;
 
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
     // One customer can have many accounts
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -27,10 +33,12 @@ public class Customer {
 
     public Customer() {}
 
-    public Customer(String name, String email, String phone) {
+    public Customer(String name, String email, String phone, String username, String password) {
         this.name = name;
         this.email = email;
         this.phone = phone;
+        this.username = username;
+        this.password = password;
     }
 
     // Getters & Setters
@@ -72,5 +80,21 @@ public class Customer {
 
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

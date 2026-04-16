@@ -1,122 +1,111 @@
 package app.banksystem.controller;
 
+import app.banksystem.dto.AccountResponse;
+import app.banksystem.dto.TransferRequest;
 import app.banksystem.model.Account;
-
-import app.banksystem.model.Transaction;
-import app.banksystem.repository.AccountRepository;
-import app.banksystem.repository.CustomerRepository;
-import app.banksystem.repository.TransactionRepository;
+import app.banksystem.service.AccountService;
+import app.banksystem.service.CustomerService;
+import app.banksystem.service.TransactionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/accounts")
 public class AccountController {
 
-    private final AccountRepository accountRepository;
-    private final CustomerRepository customerRepository;
-    private final TransactionRepository transactionRepository;
+    private final AccountService accountService;
+    private final TransactionService transactionService;
+    private final CustomerService customerService;
 
-    public AccountController(AccountRepository accountRepository, CustomerRepository customerRepository, TransactionRepository transactionRepository) {
-        this.accountRepository = accountRepository;
-        this.customerRepository = customerRepository;
-        this.transactionRepository = transactionRepository;
+    public AccountController(AccountService accountService, 
+                             TransactionService transactionService, 
+                             CustomerService customerService) {
+        this.accountService = accountService;
+        this.transactionService = transactionService;
+        this.customerService = customerService;
     }
 
     // Creates an account for a customer
     @PostMapping("/create/{customerId}")
-    public ResponseEntity<Account> createAccount(@PathVariable Long customerId, @RequestBody Account account) {
-        return customerRepository.findById(customerId)
+    public ResponseEntity<AccountResponse> createAccount(@PathVariable Long customerId, @RequestBody Account account) {
+        return customerService.getCustomerById(customerId)
                 .map(customer -> {
                     account.setCustomer(customer);
                     if (account.getBalance() == null) {
                         account.setBalance(BigDecimal.ZERO);
                     }
-                    Account saved = accountRepository.save(account);
-                    return ResponseEntity.ok(saved);
+                    // We don't have a createAccount in AccountService yet, 
+                    // but we can save via a hypothetical service method or for now use the service to update.
+                    // Actually, let's add a create method to AccountService to stay consistent.
+                    // For now, I'll use the repository if I must, but the goal is to use services.
+                    // I will add save/create to AccountService.
+                    Account saved = accountService.save(account);
+                    return ResponseEntity.ok(new AccountResponse(saved));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // Get all accounts
     @GetMapping
-    public List<Account> getAllAccounts() {
-        return accountRepository.findAll();
+    public List<AccountResponse> getAllAccounts() {
+        // Assuming we'll add a findAll to AccountService or use it here
+        // For brevity and following the "bring together" goal:
+        return accountService.findAll().stream()
+                .map(AccountResponse::new)
+                .collect(Collectors.toList());
     }
 
     // Get accounts by customer
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Account>> getAccountsByCustomer(@PathVariable Long customerId) {
-        return customerRepository.findById(customerId)
-                .map(customer -> ResponseEntity.ok(accountRepository.findByCustomer(customer)))
+    public ResponseEntity<List<AccountResponse>> getAccountsByCustomer(@PathVariable Long customerId) {
+        return customerService.getCustomerById(customerId)
+                .map(customer -> {
+                    List<AccountResponse> accounts = accountService.findByCustomer(customer).stream()
+                            .map(AccountResponse::new)
+                            .collect(Collectors.toList());
+                    return ResponseEntity.ok(accounts);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // Deposit
-    @PostMapping("/{accountId}/deposit")
-    @Transactional
-    public ResponseEntity<?> deposit(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            return ResponseEntity.badRequest().body("Amount must be positive");
+    @PostMapping("/{accountNumber}/deposit")
+    public ResponseEntity<?> deposit(@PathVariable String accountNumber, @RequestParam BigDecimal amount) {
+        try {
+            transactionService.deposit(accountNumber, amount);
+            Account account = accountService.findByAccountNumber(accountNumber);
+            return ResponseEntity.ok(new AccountResponse(account));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        return accountRepository.findById(accountId)
-                .map(account -> {
-                    account.setBalance(account.getBalance().add(amount));
-                    accountRepository.save(account);
-                    transactionRepository.save(new Transaction(account, "DEPOSIT", amount));
-                    return ResponseEntity.ok(account);
-                })
-                .orElse(ResponseEntity.notFound().build());
     }
-
 
     // Withdraw
-    @PostMapping("/{accountId}/withdraw")
-    @Transactional
-    public ResponseEntity<?> withdraw(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            return ResponseEntity.badRequest().body("Amount must be positive");
+    @PostMapping("/{accountNumber}/withdraw")
+    public ResponseEntity<?> withdraw(@PathVariable String accountNumber, @RequestParam BigDecimal amount) {
+        try {
+            transactionService.withdraw(accountNumber, amount);
+            Account account = accountService.findByAccountNumber(accountNumber);
+            return ResponseEntity.ok(new AccountResponse(account));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        return accountRepository.findById(accountId)
-                .map(account -> {
-                    if (account.getBalance().compareTo(amount) < 0) {
-                        return ResponseEntity.badRequest().body("Insufficient funds");
-                    }
-                    account.setBalance(account.getBalance().subtract(amount));
-                    accountRepository.save(account);
-                    transactionRepository.save(new Transaction(account, "WITHDRAW", amount));
-                    return ResponseEntity.ok(account);
-                })
-                .orElse(ResponseEntity.notFound().build());
     }
 
-    //transfer
+    // Transfer
     @PostMapping("/transfer")
-    @Transactional
-    public ResponseEntity<?> transfer(@RequestParam Long fromAccountId,
-                                      @RequestParam Long toAccountId,
-                                      @RequestParam BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            return ResponseEntity.badRequest().body("Amount must be positive");
+    public ResponseEntity<?> transfer(@RequestBody TransferRequest request) {
+        try {
+            transactionService.transfer(request.getFromAccountNumber(), 
+                                       request.getToAccountNumber(), 
+                                       request.getAmount());
+            return ResponseEntity.ok("Transfer successful");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        Account from = accountRepository.findById(fromAccountId).orElse(null);
-        Account to = accountRepository.findById(toAccountId).orElse(null);
-        if (from == null || to == null) return ResponseEntity.badRequest().body("Invalid account ID(s)");
-        if (from.getBalance().compareTo(amount) < 0) return ResponseEntity.badRequest().body("Insufficient funds");
-
-        from.setBalance(from.getBalance().subtract(amount));
-        to.setBalance(to.getBalance().add(amount));
-
-        accountRepository.save(from);
-        accountRepository.save(to);
-
-        transactionRepository.save(new Transaction(from, "TRANSFER_OUT", amount));
-        transactionRepository.save(new Transaction(to, "TRANSFER_IN", amount));
-
-        return ResponseEntity.ok("Transfer successful");
     }
 }
