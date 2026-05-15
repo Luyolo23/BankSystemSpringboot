@@ -12,6 +12,7 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique=true, nullable = false)
     private String accountNumber;
     private String type;
     private BigDecimal balance;
