@@ -38,11 +38,7 @@ public class AccountController {
                     if (account.getBalance() == null) {
                         account.setBalance(BigDecimal.ZERO);
                     }
-                    // We don't have a createAccount in AccountService yet, 
-                    // but we can save via a hypothetical service method or for now use the service to update.
-                    // Actually, let's add a create method to AccountService to stay consistent.
-                    // For now, I'll use the repository if I must, but the goal is to use services.
-                    // I will add save/create to AccountService.
+
                     Account saved = accountService.save(account);
                     return ResponseEntity.ok(new AccountResponse(saved));
                 })
@@ -52,8 +48,6 @@ public class AccountController {
     // Get all accounts
     @GetMapping
     public List<AccountResponse> getAllAccounts() {
-        // Assuming we'll add a findAll to AccountService or use it here
-        // For brevity and following the "bring together" goal:
         return accountService.findAll().stream()
                 .map(AccountResponse::new)
                 .collect(Collectors.toList());

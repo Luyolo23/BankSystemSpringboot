@@ -1,5 +1,6 @@
 package app.banksystem.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -12,6 +13,8 @@ public class Transaction {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "account_id", nullable = false)
+    @JsonBackReference
     private Account account;
 
     private String type; // "DEPOSIT", "WITHDRAW", "TRANSFER"

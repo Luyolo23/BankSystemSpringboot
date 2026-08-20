@@ -8,7 +8,7 @@ A comprehensive backend system for managing banking operations including custome
 * **Customer Management**: Register, update, retrieve, and delete customer profiles.
 * **Account Operations**: Open accounts, manage balances, and handle basic account operations linked to specific customers.
 * **Database & Persistence**: Leveraging Spring Data JPA for data mapping with MySQL for the primary datastore.
-* **Containerization**: Fully dockerized application and database environments using `docker-compose`.
+* **Containerization**: Fully dockerized application and database environments using `docker compose`.
 
 ## Tech Stack
 
@@ -37,7 +37,7 @@ The easiest way to get the system up and running is via Docker Compose. It will 
    ```
 2. Start the services using Docker Compose:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 3. The application will be accessible at: `http://localhost:8080`
    The database runs on port `3307` locally to avoid conflicts.

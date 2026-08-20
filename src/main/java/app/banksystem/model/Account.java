@@ -1,8 +1,11 @@
 package app.banksystem.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "accounts")
@@ -23,7 +26,9 @@ public class Account {
     @JsonBackReference
     private Customer customer;
 
-
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Transaction> tranactions = new ArrayList<>();
     public Account() {}
 
     public Account(String accountNumber, String type, BigDecimal balance, Customer customer) {
@@ -33,7 +38,6 @@ public class Account {
         this.customer = customer;
     }
 
-    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -42,6 +46,10 @@ public class Account {
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+
+    public List<Transaction> getTranactions() {
+        return tranactions;
+    }
 
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
