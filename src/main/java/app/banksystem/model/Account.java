@@ -3,10 +3,19 @@ package app.banksystem.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "accounts")
 public class Account {
@@ -15,7 +24,7 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique=true, nullable = false)
+    @Column(unique = true, nullable = false)
     private String accountNumber;
     private String type;
     private BigDecimal balance;
@@ -29,7 +38,6 @@ public class Account {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Transaction> tranactions = new ArrayList<>();
-    public Account() {}
 
     public Account(String accountNumber, String type, BigDecimal balance, Customer customer) {
         this.accountNumber = accountNumber;
@@ -38,22 +46,4 @@ public class Account {
         this.customer = customer;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getAccountNumber() { return accountNumber; }
-    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
-
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-
-    public List<Transaction> getTranactions() {
-        return tranactions;
-    }
-
-    public BigDecimal getBalance() { return balance; }
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
-
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
 }

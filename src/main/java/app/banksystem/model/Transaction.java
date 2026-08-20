@@ -2,9 +2,16 @@ package app.banksystem.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 public class Transaction {
 
@@ -21,7 +28,6 @@ public class Transaction {
     private BigDecimal amount;
     private LocalDateTime timestamp;
 
-    public Transaction() {}
 
     public Transaction(Account account, String type, BigDecimal amount) {
         this.account = account;
@@ -30,17 +36,7 @@ public class Transaction {
         this.timestamp = LocalDateTime.now();
     }
 
-    // getters and setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Account getAccount() { return account; }
-    public void setAccount(Account account) { this.account = account; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-    public BigDecimal getAmount() { return amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
 
 
 }
