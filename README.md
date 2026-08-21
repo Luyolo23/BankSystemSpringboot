@@ -1,14 +1,15 @@
 # Bank System API
 
-A comprehensive backend system for managing banking operations including customers, accounts, and secure user authentication. Built with Java 21, Spring Boot 3, and containerized with Docker for seamless deployment.
+A comprehensive backend system for managing banking operations including customers, accounts, fund transfers, and transaction history. Built with Java 21, Spring Boot 3, and containerized with Docker for seamless deployment.
 
 ## Features
 
-* **Authentication & Authorization**: Secure login and registration using Spring Security.
-* **Customer Management**: Register, update, retrieve, and delete customer profiles.
-* **Account Operations**: Open accounts, manage balances, and handle basic account operations linked to specific customers.
-* **Database & Persistence**: Leveraging Spring Data JPA for data mapping with MySQL for the primary datastore.
-* **Containerization**: Fully dockerized application and database environments using `docker compose`.
+* **Authentication & Authorization**: User registration and authentication with BCrypt password hashing.
+* **Customer Management**: Register, retrieve, and delete customer profiles.
+* **Account Operations**: Open savings/checking accounts linked to customers, check balances, deposit, withdraw, and transfer funds.
+* **Transaction Tracking**: Audit trail for deposits, withdrawals, and transfers with date-range query support.
+* **Database & Persistence**: Spring Data JPA with MySQL 8.0 datastore.
+* **Containerization**: Multi-stage Docker build and multi-container orchestration with Docker Compose.
 
 ## Tech Stack
 
@@ -20,61 +21,155 @@ A comprehensive backend system for managing banking operations including custome
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your machine:
+Before running the application, ensure you have installed:
 * Java 21 JDK
-* Maven
-* Docker
+* Maven 3.8+
+* Docker & Docker Compose
 
-## Getting things started
+---
 
-### Running with Docker
+## Quick Start (Docker)
 
-The easiest way to get the system up and running is via Docker Compose. It will spin up both the MySQL database and the Spring Boot application container.
-
-1. Navigate to the project directory:
+1. Navigate to the project root directory:
    ```bash
    cd BankSystem
    ```
-2. Start the services using Docker Compose:
+
+2. Start the application and database containers:
    ```bash
    docker compose up --build
    ```
-3. The application will be accessible at: `http://localhost:8080`
-   The database runs on port `3307` locally to avoid conflicts.
 
-   **Note**: run `docker-compose down` to shut down.
+3. The app will run at `http://localhost:8080` (MySQL running on port `3307`).
 
+4. To stop the containers:
+   ```bash
+   docker compose down
+   ```
 
+---
 
 ## API Endpoints
 
-Here is a high-level overview of the available controllers. Ensure you test these via tools like **Postman**.
+Below is the complete list of REST endpoints available in the current version of the application.
 
-### Authentication (`/auth` or `/api/auth`)
-* Handling user registration and login to receive authentication tokens.
+---
 
-### Customers (`/api/customers`)
-* `GET /api/customers` - Retrieve all customers.
-* `GET /api/customers/{id}` - Retrieve a specific customer.
-* `POST /api/customers` - Add a new customer.
-* `PUT /api/customers/{id}` - Update a customer.
-* `DELETE /api/customers/{id}` - Remove a customer.
+### 1. Authentication (`/api/auth`)
 
-### Accounts (`/api/accounts`)
-* `GET /api/accounts` - Retrieve all accounts.
-* `POST /api/accounts` - Open a new account (linked to a customer).
-* Specific operations to manage balances, deposits, and status.
+| Method | Endpoint | Description | Request Body / Query Params |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Register a new customer | **JSON Body**: Customer object |
+| `POST` | `/api/auth/login` | Authenticate customer | **JSON Body**: Login credentials |
 
+#### Request Examples:
 
+* **Register Customer (`POST /api/auth/register`)**
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "phone": "1234567890",
+    "username": "johndoe",
+    "password": "securepassword123"
+  }
+  ```
 
-## Architecture
+* **Login (`POST /api/auth/login`)**
+  ```json
+  {
+    "username": "johndoe",
+    "password": "securepassword123"
+  }
+  ```
 
-- **Controller Layer**: Handles incoming HTTP requests and delegates to services (`AuthController`, `CustomerController`, `AccountController`).
-- **Service Layer**: Contains core business logic (`CustomerService`, `AccountService`).
-- **Repository Layer**: Maps Java objects to database records using Spring Data JPA (`CustomerRepository`, etc.).
-- **Security**: Handled using `SecurityConfig`.
+---
+
+### 2. Customer Management (`/customers`)
+
+| Method | Endpoint | Description | Request Body / Query Params |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/customers` | Register/Create a new customer | **JSON Body**: Customer object |
+| `GET` | `/customers` | Get all customers | None |
+| `GET` | `/customers/{id}` | Get customer by ID | Path variable: `id` |
+| `DELETE` | `/customers/{id}` | Delete customer by ID | Path variable: `id` |
+
+#### Request Examples:
+
+* **Create Customer (`POST /customers`)**
+  ```json
+  {
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "phone": "0987654321",
+    "username": "janesmith",
+    "password": "mypassword123"
+  }
+  ```
+
+---
+
+### 3. Account Management & Operations (`/accounts`)
+
+| Method | Endpoint | Description | Request Body / Query Params |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/accounts/create/{customerId}` | Create an account for customer | Path variable: `customerId`<br>**JSON Body**: Account object |
+| `GET` | `/accounts` | Get all accounts | None |
+| `GET` | `/accounts/customer/{customerId}` | Get accounts by customer ID | Path variable: `customerId` |
+| `POST` | `/accounts/{accountNumber}/deposit` | Deposit funds | Path variable: `accountNumber`<br>**Query Param**: `amount` (e.g. `?amount=150.00`) |
+| `POST` | `/accounts/{accountNumber}/withdraw` | Withdraw funds | Path variable: `accountNumber`<br>**Query Param**: `amount` (e.g. `?amount=50.00`) |
+| `POST` | `/accounts/transfer` | Transfer funds between accounts | **JSON Body**: Transfer details |
+
+#### Request Examples:
+
+* **Create Account (`POST /accounts/create/1`)**
+  ```json
+  {
+    "accountNumber": "ACC1001",
+    "type": "SAVINGS",
+    "balance": 500.00
+  }
+  ```
+
+* **Deposit (`POST /accounts/ACC1001/deposit?amount=200.50`)**
+
+* **Withdraw (`POST /accounts/ACC1001/withdraw?amount=50.00`)**
+
+* **Transfer Funds (`POST /accounts/transfer`)**
+  ```json
+  {
+    "fromAccountNumber": "ACC1001",
+    "toAccountNumber": "ACC1002",
+    "amount": 100.00,
+    "description": "Rent payment"
+  }
+  ```
+
+---
+
+### 4. Transactions & History (`/api/transactions`)
+
+| Method | Endpoint | Description | Query Parameters |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/transactions` | Get account transaction history | `accountNumber` (e.g. `?accountNumber=ACC1001`) |
+| `GET` | `/api/transactions/range` | Get transactions by date range | `accountNumber`, `start`, `end`<br>*(ISO format: `YYYY-MM-DDTHH:MM:SS`)* |
+
+#### Request Examples:
+
+* **Get Account Transactions (`GET /api/transactions?accountNumber=ACC1001`)**
+
+* **Get Transactions in Date Range (`GET /api/transactions/range?accountNumber=ACC1001&start=2026-01-01T00:00:00&end=2026-12-31T23:59:59`)**
+
+---
+
+## Architecture Overview
+
+- **Controller Layer**: REST API endpoints (`AuthController`, `CustomerController`, `AccountController`, `TransactionController`).
+- **Service Layer**: Business logic, transfers, deposit/withdrawal calculations, and password encoding (`AuthService`, `CustomerService`, `AccountService`, `TransactionService`).
+- **Repository Layer**: Database access using Spring Data JPA repositories.
+- **Security Config**: Configured via `SecurityConfig` (Spring Security).
 
 ## Docker Configuration
 
-* `Dockerfile`: Uses a multi-stage build. First stage utilizes `maven:3.9.6-eclipse-temurin-21` to build the application. The second stage uses a lightweight `eclipse-temurin:21-jre-jammy` image to run the compiled JAR.
-* `docker-compose.yml`: Defines the backend `app` service and the `mysql` database service, linking them via an internal network. Data persistence is managed via the `mysql_data` volume.
+* **`Dockerfile`**: Multi-stage build (`maven:3.9.6-eclipse-temurin-21` -> `eclipse-temurin:21-jre-jammy`).
+* **`docker-compose.yml`**: Configures `app` service and `mysql` database container (port 3307 mapped to container 3306) with volume persistence.
